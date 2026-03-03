@@ -27,6 +27,7 @@ from .const import (
     PHY_DISPLAY_NAMES,
     PHY_WIFI,
     WIFI_PRESENCE_WINDOW,
+    signal_to_quality,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -230,17 +231,19 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                     or d.get("kismet.device.base.manuf")
                     or mac
                 )
+                sig = d.get(
+                    "kismet.common.signal.last_signal",
+                    d.get(
+                        "kismet.device.base.signal/"
+                        "kismet.common.signal.last_signal",
+                        0,
+                    ),
+                )
                 self._wifi_presence_cache[mac] = {
                     "name": name,
                     "manufacturer": d.get("kismet.device.base.manuf", ""),
-                    "signal": d.get(
-                        "kismet.common.signal.last_signal",
-                        d.get(
-                            "kismet.device.base.signal/"
-                            "kismet.common.signal.last_signal",
-                            0,
-                        ),
-                    ),
+                    "signal": sig,
+                    "signal_quality": signal_to_quality(sig) if sig < 0 else "Weak",
                     "last_seen": now_ts,
                     "is_active": True,
                 }

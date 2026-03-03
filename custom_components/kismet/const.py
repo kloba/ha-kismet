@@ -12,6 +12,23 @@ DEFAULT_SCHEME: Final = "http"
 DEFAULT_SIGNAL_THRESHOLD: Final = -60
 WIFI_PRESENCE_WINDOW: Final = 28800  # 8 hours in seconds
 
+# Signal quality thresholds (dBm)
+SIGNAL_STRONG: Final = -40
+SIGNAL_GOOD: Final = -55
+SIGNAL_FAIR: Final = -70
+SIGNAL_QUALITY_OPTIONS: Final = ["Strong", "Good", "Fair", "Weak"]
+
+
+def signal_to_quality(dbm: int) -> str:
+    """Map dBm value to a signal quality label."""
+    if dbm >= SIGNAL_STRONG:
+        return "Strong"
+    if dbm >= SIGNAL_GOOD:
+        return "Good"
+    if dbm >= SIGNAL_FAIR:
+        return "Fair"
+    return "Weak"
+
 # Config keys
 CONF_API_KEY: Final = "api_key"
 CONF_SCAN_INTERVAL: Final = "scan_interval"
