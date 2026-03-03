@@ -50,7 +50,7 @@ def _total_devices(data: KismetData) -> int | None:
 
 
 def _packet_rate(data: KismetData) -> float | None:
-    return data.system_status.get("kismet.system.packets.rate")
+    return data.packet_rate
 
 
 def _alert_attrs(data: KismetData) -> dict[str, Any]:

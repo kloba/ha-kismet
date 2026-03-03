@@ -46,7 +46,6 @@ STATUS_FIELDS: Final = [
     "kismet.system.memory.rss",
     "kismet.system.devices.count",
     "kismet.system.timestamp.start_sec",
-    "kismet.system.packets.rate",
 ]
 
 # PHY types

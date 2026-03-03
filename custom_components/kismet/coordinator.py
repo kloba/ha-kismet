@@ -40,7 +40,9 @@ class KismetData:
     ble_device_count: int = 0
     total_active_count: int = 0
     alert_count: int = 0
+    new_alert_count: int = 0
     last_alert_text: str | None = None
+    packet_rate: float | None = None
     online: bool = False
 
 
@@ -69,6 +71,8 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
         self.config_entry = entry
         self._last_alert_ts: int = 0
         self._all_alerts: list[dict[str, Any]] = []
+        self._prev_total_packets: int | None = None
+        self._prev_poll_time: float | None = None
 
     @property
     def active_window(self) -> int:
@@ -101,7 +105,26 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
             # Datasources
             data.datasources = await self.client.async_get_datasources()
 
+            # Packet rate (computed from datasource packet counts)
+            now = time.monotonic()
+            total_packets = sum(
+                s.get("kismet.datasource.num_packets", 0)
+                for s in data.datasources
+            )
+            if (
+                self._prev_total_packets is not None
+                and self._prev_poll_time is not None
+            ):
+                elapsed = now - self._prev_poll_time
+                if elapsed > 0:
+                    data.packet_rate = round(
+                        (total_packets - self._prev_total_packets) / elapsed, 1
+                    )
+            self._prev_total_packets = total_packets
+            self._prev_poll_time = now
+
             # Alerts
+            new_alerts: list[dict[str, Any]] = []
             if self._last_alert_ts > 0:
                 new_alerts = await self.client.async_get_alerts_since(
                     self._last_alert_ts
@@ -112,6 +135,7 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
 
             data.alerts = self._all_alerts
             data.alert_count = len(self._all_alerts)
+            data.new_alert_count = len(new_alerts)
             if self._all_alerts:
                 last = self._all_alerts[-1]
                 data.last_alert_text = last.get(

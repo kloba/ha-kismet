@@ -74,10 +74,10 @@ class KismetAlertsActive(KismetEntity, BinarySensorEntity):
 
     @property
     def is_on(self) -> bool:
-        """Return true if there are alerts."""
+        """Return true if new alerts arrived since last poll."""
         if not self.coordinator.data:
             return False
-        return self.coordinator.data.alert_count > 0
+        return self.coordinator.data.new_alert_count > 0
 
 
 class KismetDatasourceOnline(KismetEntity, BinarySensorEntity):
