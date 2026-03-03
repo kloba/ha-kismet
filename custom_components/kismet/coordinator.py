@@ -22,7 +22,9 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SIGNAL_THRESHOLD,
     DOMAIN,
+    NEARBY_DEVICE_TYPES,
     PHY_BLE,
+    PHY_DISPLAY_NAMES,
     PHY_WIFI,
 )
 
@@ -171,9 +173,14 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                 if d.get("kismet.device.base.phyname") == PHY_BLE
             )
 
-            # Nearby devices (sorted by signal strength)
+            # Nearby devices: clients only (no APs), include BLE
             nearby = []
             for d in data.active_devices:
+                dev_type = d.get("kismet.device.base.type", "")
+                if dev_type not in NEARBY_DEVICE_TYPES:
+                    continue
+
+                phy = d.get("kismet.device.base.phyname", "")
                 sig = d.get(
                     "kismet.common.signal.last_signal",
                     d.get(
@@ -182,30 +189,33 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                         0,
                     ),
                 )
-                if sig < 0 and sig >= self.signal_threshold:
-                    name = (
-                        d.get("kismet.device.base.commonname")
-                        or d.get("kismet.device.base.name")
-                        or d.get("kismet.device.base.manuf")
-                        or d.get("kismet.device.base.macaddr", "?")
-                    )
-                    nearby.append(
-                        {
-                            "name": name,
-                            "mac": d.get("kismet.device.base.macaddr", ""),
-                            "signal": sig,
-                            "type": d.get("kismet.device.base.type", ""),
-                            "phy": d.get("kismet.device.base.phyname", ""),
-                            "channel": d.get(
-                                "kismet.device.base.channel", ""
-                            ),
-                            "manufacturer": d.get(
-                                "kismet.device.base.manuf", ""
-                            ),
-                        }
-                    )
-            nearby.sort(key=lambda x: x["signal"], reverse=True)
-            data.nearby_devices = nearby[:20]
+
+                # WiFi: filter by signal threshold; BLE: always include
+                if phy == PHY_WIFI and (sig >= 0 or sig < self.signal_threshold):
+                    continue
+
+                name = (
+                    d.get("kismet.device.base.commonname")
+                    or d.get("kismet.device.base.name")
+                    or d.get("kismet.device.base.manuf")
+                    or d.get("kismet.device.base.macaddr", "?")
+                )
+                nearby.append(
+                    {
+                        "name": name,
+                        "mac": d.get("kismet.device.base.macaddr", ""),
+                        "signal": sig if sig < 0 else None,
+                        "type": PHY_DISPLAY_NAMES.get(phy, phy),
+                        "manufacturer": d.get(
+                            "kismet.device.base.manuf", ""
+                        ),
+                    }
+                )
+            # Sort: devices with signal first (strongest first), then BLE (no signal)
+            nearby.sort(
+                key=lambda x: (x["signal"] is None, -(x["signal"] or 0)),
+            )
+            data.nearby_devices = nearby[:30]
 
             # Tracked devices
             macs = self.tracked_macs
