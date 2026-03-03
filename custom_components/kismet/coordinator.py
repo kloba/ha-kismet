@@ -239,11 +239,17 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                         0,
                     ),
                 )
+                quality = signal_to_quality(sig) if sig < 0 else "Weak"
+                prev = self._wifi_presence_cache.get(mac)
+                prev_peak = prev["peak_signal"] if prev else 0
+                peak = max(sig, prev_peak) if sig < 0 else prev_peak
                 self._wifi_presence_cache[mac] = {
                     "name": name,
                     "manufacturer": d.get("kismet.device.base.manuf", ""),
                     "signal": sig,
-                    "signal_quality": signal_to_quality(sig) if sig < 0 else "Weak",
+                    "signal_quality": quality,
+                    "peak_signal": peak,
+                    "peak_quality": signal_to_quality(peak) if peak < 0 else "Weak",
                     "last_seen": now_ts,
                     "is_active": True,
                 }
