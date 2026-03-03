@@ -51,7 +51,7 @@ STATUS_FIELDS: Final = [
 
 # PHY types
 PHY_WIFI: Final = "IEEE802.11"
-PHY_BLE: Final = "BTLE"
+PHY_BLE: Final = "Bluetooth"
 
 # Platforms
 PLATFORMS: Final = ["sensor", "binary_sensor"]
