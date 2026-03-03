@@ -55,7 +55,7 @@ PHY_WIFI: Final = "IEEE802.11"
 PHY_BLE: Final = "Bluetooth"
 
 # Device types to include in nearby list (clients only, no APs/infra)
-NEARBY_DEVICE_TYPES: Final = {"Wi-Fi Client", "Wi-Fi Device", "BTLE"}
+NEARBY_DEVICE_TYPES: Final = {"Wi-Fi Client", "Wi-Fi Device"}
 
 # Readable PHY names
 PHY_DISPLAY_NAMES: Final = {
