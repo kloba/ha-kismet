@@ -173,13 +173,14 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                 if d.get("kismet.device.base.phyname") == PHY_BLE
             )
 
-            # Nearby devices: WiFi clients only, filtered by signal
+            # Nearby devices: clients only (WiFi filtered by signal, BLE all)
             nearby = []
             for d in data.active_devices:
                 dev_type = d.get("kismet.device.base.type", "")
                 if dev_type not in NEARBY_DEVICE_TYPES:
                     continue
 
+                phy = d.get("kismet.device.base.phyname", "")
                 sig = d.get(
                     "kismet.common.signal.last_signal",
                     d.get(
@@ -188,7 +189,9 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                         0,
                     ),
                 )
-                if sig >= 0 or sig < self.signal_threshold:
+
+                # WiFi: filter by signal threshold; BLE: always include
+                if phy == PHY_WIFI and (sig >= 0 or sig < self.signal_threshold):
                     continue
 
                 name = (
@@ -201,13 +204,17 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                     {
                         "name": name,
                         "mac": d.get("kismet.device.base.macaddr", ""),
-                        "signal": sig,
+                        "signal": sig if sig < 0 else None,
+                        "type": PHY_DISPLAY_NAMES.get(phy, phy),
                         "manufacturer": d.get(
                             "kismet.device.base.manuf", ""
                         ),
                     }
                 )
-            nearby.sort(key=lambda x: x["signal"], reverse=True)
+            # WiFi (strongest first), then BLE
+            nearby.sort(
+                key=lambda x: (x["signal"] is None, -(x["signal"] or 0)),
+            )
             data.nearby_devices = nearby
 
             # Tracked devices
