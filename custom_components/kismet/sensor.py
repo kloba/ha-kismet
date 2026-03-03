@@ -283,6 +283,5 @@ class KismetWifiSignal(
             info = self.coordinator.data.wifi_presence.get(self._mac, {})
             attrs["manufacturer"] = info.get("manufacturer", "")
             sig = info.get("signal", 0)
-            if sig < 0:
-                attrs["signal_dbm"] = sig
+            attrs["signal_dbm"] = sig if sig < 0 else -100
         return attrs
