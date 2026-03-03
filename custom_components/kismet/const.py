@@ -13,7 +13,7 @@ DEFAULT_SIGNAL_THRESHOLD: Final = -60
 WIFI_PRESENCE_WINDOW: Final = 86400  # 24 hours in seconds
 
 # Signal quality thresholds (dBm)
-SIGNAL_STRONG: Final = -40
+SIGNAL_STRONG: Final = -50
 SIGNAL_GOOD: Final = -55
 SIGNAL_FAIR: Final = -70
 SIGNAL_QUALITY_OPTIONS: Final = ["Strong", "Good", "Fair", "Weak"]
