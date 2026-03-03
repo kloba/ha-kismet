@@ -9,7 +9,7 @@ DEFAULT_PORT: Final = 2501
 DEFAULT_SCAN_INTERVAL: Final = 30
 DEFAULT_ACTIVE_WINDOW: Final = 300  # 5 minutes
 DEFAULT_SCHEME: Final = "http"
-DEFAULT_SIGNAL_THRESHOLD: Final = -80
+DEFAULT_SIGNAL_THRESHOLD: Final = -60
 
 # Config keys
 CONF_API_KEY: Final = "api_key"
@@ -55,7 +55,7 @@ PHY_WIFI: Final = "IEEE802.11"
 PHY_BLE: Final = "Bluetooth"
 
 # Device types to include in nearby list (clients only, no APs/infra)
-NEARBY_DEVICE_TYPES: Final = {"Wi-Fi Client", "Wi-Fi Device", "BTLE"}
+NEARBY_DEVICE_TYPES: Final = {"Wi-Fi Client", "Wi-Fi Device"}
 
 # Readable PHY names
 PHY_DISPLAY_NAMES: Final = {
