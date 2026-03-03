@@ -215,7 +215,7 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
             nearby.sort(
                 key=lambda x: (x["signal"] is None, -(x["signal"] or 0)),
             )
-            data.nearby_devices = nearby[:30]
+            data.nearby_devices = nearby
 
             # Tracked devices
             macs = self.tracked_macs
