@@ -1,0 +1,64 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Kismet",
+        "description": "Enter the connection details for your Kismet server.",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "api_key": "API Key"
+        },
+        "data_description": {
+          "host": "Hostname or IP address of the Kismet server.",
+          "port": "Port number (default: 2501).",
+          "api_key": "Kismet API key (found in ~/.kismet/kismet_httpd.conf)."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to Kismet server.",
+      "invalid_auth": "Invalid API key.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This Kismet server is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Kismet Options",
+        "data": {
+          "scan_interval": "Scan interval (seconds)",
+          "active_window": "Active device window (seconds)",
+          "tracked_macs": "Tracked MAC addresses (comma-separated)",
+          "enable_device_tracker": "Enable device tracker"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the Kismet server (10-300 seconds).",
+          "active_window": "Devices seen within this window are considered active (60-3600 seconds).",
+          "tracked_macs": "MAC addresses to track for presence detection (e.g., AA:BB:CC:DD:EE:FF, 11:22:33:44:55:66).",
+          "enable_device_tracker": "Create device tracker entities for tracked MACs."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "uptime": { "name": "Uptime" },
+      "memory": { "name": "Memory usage" },
+      "total_devices": { "name": "Total devices" },
+      "active_devices": { "name": "Active devices" },
+      "wifi_devices": { "name": "WiFi devices" },
+      "ble_devices": { "name": "BLE devices" },
+      "alerts": { "name": "Alerts" },
+      "packet_rate": { "name": "Packet rate" }
+    },
+    "binary_sensor": {
+      "server_online": { "name": "Server online" },
+      "alerts_active": { "name": "Alerts active" },
+      "datasource_online": { "name": "Datasource online" }
+    }
+  }
+}
