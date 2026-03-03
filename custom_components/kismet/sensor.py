@@ -291,5 +291,8 @@ class KismetWifiSignal(
             info = self.coordinator.data.wifi_presence.get(self._mac, {})
             attrs["manufacturer"] = info.get("manufacturer", "")
             sig = info.get("signal", 0)
-            attrs["signal_dbm"] = sig if sig < 0 else -100
+            dbm = sig if sig < 0 else -100
+            attrs["signal_dbm"] = dbm
+            # Positive 0-100 scale for auto-entities sorting (higher=stronger)
+            attrs["signal_strength"] = max(0, min(100, 100 + dbm))
         return attrs
