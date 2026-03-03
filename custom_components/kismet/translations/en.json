@@ -33,12 +33,14 @@
           "scan_interval": "Scan interval (seconds)",
           "active_window": "Active device window (seconds)",
           "tracked_macs": "Tracked MAC addresses (comma-separated)",
+          "signal_threshold": "Nearby device signal threshold (dBm)",
           "enable_device_tracker": "Enable device tracker"
         },
         "data_description": {
           "scan_interval": "How often to poll the Kismet server (10-300 seconds).",
           "active_window": "Devices seen within this window are considered active (60-3600 seconds).",
           "tracked_macs": "MAC addresses to track for presence detection (e.g., AA:BB:CC:DD:EE:FF, 11:22:33:44:55:66).",
+          "signal_threshold": "Only show devices with signal stronger than this value (-100 to -20 dBm). Default -80.",
           "enable_device_tracker": "Create device tracker entities for tracked MACs."
         }
       }
@@ -53,7 +55,8 @@
       "wifi_devices": { "name": "WiFi devices" },
       "ble_devices": { "name": "BLE devices" },
       "alerts": { "name": "Alerts" },
-      "packet_rate": { "name": "Packet rate" }
+      "packet_rate": { "name": "Packet rate" },
+      "nearby_devices": { "name": "Nearby devices" }
     },
     "binary_sensor": {
       "server_online": { "name": "Server online" },

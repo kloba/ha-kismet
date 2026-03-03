@@ -53,6 +53,14 @@ def _packet_rate(data: KismetData) -> float | None:
     return data.packet_rate
 
 
+def _nearby_count(data: KismetData) -> int:
+    return len(data.nearby_devices)
+
+
+def _nearby_attrs(data: KismetData) -> dict[str, Any]:
+    return {"devices": data.nearby_devices}
+
+
 def _alert_attrs(data: KismetData) -> dict[str, Any]:
     attrs: dict[str, Any] = {}
     if data.last_alert_text:
@@ -114,6 +122,13 @@ SENSOR_DESCRIPTIONS: tuple[KismetSensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="pkt/s",
         value_fn=_packet_rate,
+    ),
+    KismetSensorEntityDescription(
+        key="nearby_devices",
+        translation_key="nearby_devices",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=_nearby_count,
+        extra_attrs_fn=_nearby_attrs,
     ),
 )
 

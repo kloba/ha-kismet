@@ -9,6 +9,7 @@ DEFAULT_PORT: Final = 2501
 DEFAULT_SCAN_INTERVAL: Final = 30
 DEFAULT_ACTIVE_WINDOW: Final = 300  # 5 minutes
 DEFAULT_SCHEME: Final = "http"
+DEFAULT_SIGNAL_THRESHOLD: Final = -80
 
 # Config keys
 CONF_API_KEY: Final = "api_key"
@@ -16,6 +17,7 @@ CONF_SCAN_INTERVAL: Final = "scan_interval"
 CONF_ACTIVE_WINDOW: Final = "active_window"
 CONF_TRACKED_MACS: Final = "tracked_macs"
 CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
+CONF_SIGNAL_THRESHOLD: Final = "signal_threshold"
 
 # API endpoints
 ENDPOINT_SYSTEM_STATUS: Final = "/system/status.json"

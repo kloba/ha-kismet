@@ -23,10 +23,12 @@ from .const import (
     CONF_API_KEY,
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_SCAN_INTERVAL,
+    CONF_SIGNAL_THRESHOLD,
     CONF_TRACKED_MACS,
     DEFAULT_ACTIVE_WINDOW,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SIGNAL_THRESHOLD,
     DOMAIN,
 )
 
@@ -128,6 +130,12 @@ class KismetOptionsFlow(OptionsFlow):
                         CONF_TRACKED_MACS,
                         default=options.get(CONF_TRACKED_MACS, ""),
                     ): str,
+                    vol.Optional(
+                        CONF_SIGNAL_THRESHOLD,
+                        default=options.get(
+                            CONF_SIGNAL_THRESHOLD, DEFAULT_SIGNAL_THRESHOLD
+                        ),
+                    ): vol.All(vol.Coerce(int), vol.Range(min=-100, max=-20)),
                     vol.Optional(
                         CONF_ENABLE_DEVICE_TRACKER,
                         default=options.get(

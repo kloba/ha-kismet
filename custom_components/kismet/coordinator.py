@@ -16,9 +16,11 @@ from .const import (
     CONF_ACTIVE_WINDOW,
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_SCAN_INTERVAL,
+    CONF_SIGNAL_THRESHOLD,
     CONF_TRACKED_MACS,
     DEFAULT_ACTIVE_WINDOW,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SIGNAL_THRESHOLD,
     DOMAIN,
     PHY_BLE,
     PHY_WIFI,
@@ -42,6 +44,7 @@ class KismetData:
     alert_count: int = 0
     new_alert_count: int = 0
     last_alert_text: str | None = None
+    nearby_devices: list[dict[str, Any]] = field(default_factory=list)
     packet_rate: float | None = None
     online: bool = False
 
@@ -88,6 +91,13 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
         if not raw:
             return []
         return [m.strip().upper() for m in raw.split(",") if m.strip()]
+
+    @property
+    def signal_threshold(self) -> int:
+        """Return the signal strength threshold in dBm."""
+        return self.config_entry.options.get(
+            CONF_SIGNAL_THRESHOLD, DEFAULT_SIGNAL_THRESHOLD
+        )
 
     @property
     def device_tracker_enabled(self) -> bool:
@@ -160,6 +170,42 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                 for d in data.active_devices
                 if d.get("kismet.device.base.phyname") == PHY_BLE
             )
+
+            # Nearby devices (sorted by signal strength)
+            nearby = []
+            for d in data.active_devices:
+                sig = d.get(
+                    "kismet.common.signal.last_signal",
+                    d.get(
+                        "kismet.device.base.signal/"
+                        "kismet.common.signal.last_signal",
+                        0,
+                    ),
+                )
+                if sig < 0 and sig >= self.signal_threshold:
+                    name = (
+                        d.get("kismet.device.base.commonname")
+                        or d.get("kismet.device.base.name")
+                        or d.get("kismet.device.base.manuf")
+                        or d.get("kismet.device.base.macaddr", "?")
+                    )
+                    nearby.append(
+                        {
+                            "name": name,
+                            "mac": d.get("kismet.device.base.macaddr", ""),
+                            "signal": sig,
+                            "type": d.get("kismet.device.base.type", ""),
+                            "phy": d.get("kismet.device.base.phyname", ""),
+                            "channel": d.get(
+                                "kismet.device.base.channel", ""
+                            ),
+                            "manufacturer": d.get(
+                                "kismet.device.base.manuf", ""
+                            ),
+                        }
+                    )
+            nearby.sort(key=lambda x: x["signal"], reverse=True)
+            data.nearby_devices = nearby[:20]
 
             # Tracked devices
             macs = self.tracked_macs
