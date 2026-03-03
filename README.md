@@ -7,7 +7,8 @@ A Home Assistant custom component for [Kismet Wireless](https://www.kismetwirele
 
 ## Features
 
-- **Sensors**: Uptime, memory usage, total/active/WiFi/BLE device counts, alert count, packet rate
+- **Sensors**: Uptime, memory usage, total/active/WiFi/BLE device counts, alert count, packet rate, nearby devices
+- **WiFi Signal Sensors**: Dynamic per-device sensors with signal quality (Strong/Good/Fair/Weak) — renders as colored timeline bars in history-graph
 - **Binary Sensors**: Server online status, datasource status, alerts active
 - **Device Tracker**: Track specific MAC addresses for presence detection
 - **HACS Compatible**: Install via HACS custom repository
@@ -49,6 +50,7 @@ After adding the integration, configure options via the integration's **Configur
 |--------|---------|-------------|
 | Scan interval | 30s | How often to poll the Kismet server (10-300s) |
 | Active device window | 300s | Devices seen within this window are considered active |
+| Signal threshold | -60 dBm | Minimum signal strength for nearby device list |
 | Tracked MACs | (empty) | Comma-separated MAC addresses for presence tracking |
 | Enable device tracker | Off | Create device tracker entities for tracked MACs |
 
@@ -66,6 +68,17 @@ After adding the integration, configure options via the integration's **Configur
 | `sensor.kismet_ble_devices` | Active BLE devices |
 | `sensor.kismet_alerts` | Total alert count (last alert text as attribute) |
 | `sensor.kismet_packet_rate` | Current packet rate (pkt/s) |
+| `sensor.kismet_nearby_devices` | Count of nearby WiFi clients (device list as attribute) |
+
+### WiFi Signal Quality Sensors
+
+Dynamically created for each WiFi client device detected by Kismet. Uses `SensorDeviceClass.ENUM` with states **Strong**, **Good**, **Fair**, **Weak** — HA renders these as colored timeline bars in history-graph cards.
+
+- Signal thresholds: Strong (>= -40 dBm), Good (-40 to -55), Fair (-55 to -70), Weak (< -70)
+- Entity becomes `unavailable` (grey in timeline) when device is not active
+- Devices are retained in memory for 8 hours after last detection
+- Labels: `Manufacturer (XXYY)` for known vendors, full MAC for unknown
+- Extra attributes: `mac`, `manufacturer`, `signal_dbm`, `signal_strength` (0-100 scale)
 
 ### Binary Sensors
 
