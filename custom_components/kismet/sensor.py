@@ -244,12 +244,11 @@ class KismetWifiSignal(
 
     @staticmethod
     def _make_label(mac: str, info: dict) -> str:
-        """Build a unique label: Manufacturer (XXYY) or last 3 MAC octets."""
+        """Build a unique label: Manufacturer (XXYY) or full MAC."""
         mac_short = mac.replace(":", "")[-4:].upper()
         manuf = info.get("manufacturer", "")
         if manuf and manuf not in ("Unknown", ""):
             short = manuf.split(",")[0].strip()
-            # Strip common suffixes to keep names short
             for suffix in (
                 " Inc.", " LLC", " Ltd.", " Ltd",
                 " Co.", " Corp.", " Corporation",
@@ -261,7 +260,7 @@ class KismetWifiSignal(
             if len(short) > 12:
                 short = short[:12]
             return f"{short} ({mac_short})"
-        return mac[-8:]  # e.g. "0B:89:AB"
+        return mac
 
     @property
     def available(self) -> bool:
