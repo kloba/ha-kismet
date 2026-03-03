@@ -10,6 +10,7 @@ DEFAULT_SCAN_INTERVAL: Final = 30
 DEFAULT_ACTIVE_WINDOW: Final = 300  # 5 minutes
 DEFAULT_SCHEME: Final = "http"
 DEFAULT_SIGNAL_THRESHOLD: Final = -60
+WIFI_PRESENCE_WINDOW: Final = 28800  # 8 hours in seconds
 
 # Config keys
 CONF_API_KEY: Final = "api_key"

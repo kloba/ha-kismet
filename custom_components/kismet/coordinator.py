@@ -26,6 +26,7 @@ from .const import (
     PHY_BLE,
     PHY_DISPLAY_NAMES,
     PHY_WIFI,
+    WIFI_PRESENCE_WINDOW,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,6 +48,7 @@ class KismetData:
     new_alert_count: int = 0
     last_alert_text: str | None = None
     nearby_devices: list[dict[str, Any]] = field(default_factory=list)
+    wifi_presence: dict[str, dict[str, Any]] = field(default_factory=dict)
     packet_rate: float | None = None
     online: bool = False
 
@@ -78,6 +80,7 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
         self._all_alerts: list[dict[str, Any]] = []
         self._prev_total_packets: int | None = None
         self._prev_poll_time: float | None = None
+        self._wifi_presence_cache: dict[str, dict[str, Any]] = {}
 
     @property
     def active_window(self) -> int:
@@ -209,6 +212,48 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                 )
             nearby.sort(key=lambda x: x["signal"], reverse=True)
             data.nearby_devices = nearby
+
+            # WiFi presence tracking (8-hour window)
+            now_ts = int(time.time())
+            current_active_macs: set[str] = set()
+            for d in data.active_devices:
+                dev_type = d.get("kismet.device.base.type", "")
+                if dev_type not in NEARBY_DEVICE_TYPES:
+                    continue
+                mac = d.get("kismet.device.base.macaddr", "")
+                if not mac:
+                    continue
+                current_active_macs.add(mac)
+                name = (
+                    d.get("kismet.device.base.commonname")
+                    or d.get("kismet.device.base.name")
+                    or d.get("kismet.device.base.manuf")
+                    or mac
+                )
+                self._wifi_presence_cache[mac] = {
+                    "name": name,
+                    "manufacturer": d.get("kismet.device.base.manuf", ""),
+                    "signal": d.get(
+                        "kismet.common.signal.last_signal",
+                        d.get(
+                            "kismet.device.base.signal/"
+                            "kismet.common.signal.last_signal",
+                            0,
+                        ),
+                    ),
+                    "last_seen": now_ts,
+                    "is_active": True,
+                }
+            for mac in self._wifi_presence_cache:
+                if mac not in current_active_macs:
+                    self._wifi_presence_cache[mac]["is_active"] = False
+            cutoff = now_ts - WIFI_PRESENCE_WINDOW
+            self._wifi_presence_cache = {
+                m: info
+                for m, info in self._wifi_presence_cache.items()
+                if info["last_seen"] >= cutoff
+            }
+            data.wifi_presence = dict(self._wifi_presence_cache)
 
             # Tracked devices
             macs = self.tracked_macs
