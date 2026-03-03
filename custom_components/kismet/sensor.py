@@ -248,10 +248,18 @@ class KismetWifiSignal(
         mac_short = mac.replace(":", "")[-4:].upper()
         manuf = info.get("manufacturer", "")
         if manuf and manuf not in ("Unknown", ""):
-            # Shorten long manufacturer names
-            short = manuf.split(",")[0].split("Co.")[0].strip()
-            if len(short) > 20:
-                short = short[:20]
+            short = manuf.split(",")[0].strip()
+            # Strip common suffixes to keep names short
+            for suffix in (
+                " Inc.", " LLC", " Ltd.", " Ltd",
+                " Co.", " Corp.", " Corporation",
+                " Technology", " Technologies",
+                " International", " Holdings",
+                " Limited", " Group",
+            ):
+                short = short.removesuffix(suffix)
+            if len(short) > 12:
+                short = short[:12]
             return f"{short} ({mac_short})"
         return mac[-8:]  # e.g. "0B:89:AB"
 
