@@ -9,6 +9,7 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import KismetApiClient, KismetAuthError, KismetConnectionError
@@ -82,6 +83,21 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
         self._prev_total_packets: int | None = None
         self._prev_poll_time: float | None = None
         self._wifi_presence_cache: dict[str, dict[str, Any]] = {}
+        self._store = Store(hass, version=1, key=f"kismet_{entry.entry_id}")
+
+    async def _async_setup(self) -> None:
+        """Load persisted WiFi presence cache on startup."""
+        stored = await self._store.async_load()
+        if stored and isinstance(stored, dict):
+            now_ts = int(time.time())
+            cutoff = now_ts - WIFI_PRESENCE_WINDOW
+            self._wifi_presence_cache = {
+                mac: info
+                for mac, info in stored.items()
+                if isinstance(info, dict) and info.get("last_seen", 0) >= cutoff
+            }
+            for info in self._wifi_presence_cache.values():
+                info["is_active"] = False
 
     @property
     def active_window(self) -> int:
@@ -278,6 +294,11 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                 if info["last_seen"] >= cutoff
             }
             data.wifi_presence = dict(self._wifi_presence_cache)
+
+            # Persist cache to survive restarts
+            self._store.async_delay_save(
+                lambda: dict(self._wifi_presence_cache), delay=30
+            )
 
             # Tracked devices
             macs = self.tracked_macs
