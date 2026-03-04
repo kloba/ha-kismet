@@ -230,6 +230,32 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
             nearby.sort(key=lambda x: x["signal"], reverse=True)
             data.nearby_devices = nearby
 
+            # Build AP lookup: BSSID -> AP name/SSID
+            ap_lookup: dict[str, str] = {}
+            for d in data.active_devices:
+                if d.get("kismet.device.base.type") == "Wi-Fi AP":
+                    ap_mac = d.get("kismet.device.base.macaddr", "")
+                    ap_name = (
+                        d.get("kismet.device.base.commonname")
+                        or d.get("kismet.device.base.name")
+                        or ""
+                    )
+                    if not ap_name:
+                        dot11 = d.get("dot11.device")
+                        if isinstance(dot11, dict):
+                            ssid_map = dot11.get(
+                                "dot11.device.advertised_ssid_map", []
+                            )
+                            if ssid_map and isinstance(ssid_map, list):
+                                ap_name = ssid_map[0].get(
+                                    "dot11.advertisedssid.ssid", ""
+                                )
+                    ap_name = ap_name or d.get(
+                        "kismet.device.base.manuf", ap_mac
+                    )
+                    if ap_mac:
+                        ap_lookup[ap_mac] = ap_name
+
             # WiFi presence tracking (24-hour window)
             now_ts = int(time.time())
             current_active_macs: set[str] = set()
@@ -263,6 +289,14 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                 if peak <= -200:
                     peak = sig
                 manuf = d.get("kismet.device.base.manuf", "")
+                # Extract connected AP from dot11.device sub-object
+                dot11 = d.get("dot11.device")
+                bssid = ""
+                if isinstance(dot11, dict):
+                    raw = dot11.get("dot11.device.last_bssid", "")
+                    if raw and raw != "00:00:00:00:00:00":
+                        bssid = raw
+                connected_ap = ap_lookup.get(bssid, bssid) if bssid else ""
                 self._wifi_presence_cache[mac] = {
                     "name": name,
                     "manufacturer": manuf,
@@ -270,6 +304,8 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                     "signal_quality": quality,
                     "peak_signal": peak,
                     "peak_quality": signal_to_quality(peak) if peak < 0 else "Weak",
+                    "connected_ap": connected_ap,
+                    "connected_bssid": bssid,
                     "last_seen": now_ts,
                     "is_active": True,
                 }

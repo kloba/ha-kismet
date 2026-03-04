@@ -58,6 +58,7 @@ DEVICE_FIELDS: Final = [
     "kismet.device.base.channel",
     "kismet.device.base.manuf",
     "kismet.device.base.packets.total",
+    "dot11.device",  # full object needed; flat sub-field paths return 0
 ]
 
 # System status fields
