@@ -240,14 +240,16 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                     ),
                 )
                 quality = signal_to_quality(sig) if sig < 0 else "Weak"
+                is_new = mac not in self._wifi_presence_cache
                 prev = self._wifi_presence_cache.get(mac)
                 prev_peak = prev["peak_signal"] if prev else -200
                 peak = max(sig, prev_peak) if sig < 0 else prev_peak
                 if peak <= -200:
                     peak = sig
+                manuf = d.get("kismet.device.base.manuf", "")
                 self._wifi_presence_cache[mac] = {
                     "name": name,
-                    "manufacturer": d.get("kismet.device.base.manuf", ""),
+                    "manufacturer": manuf,
                     "signal": sig,
                     "signal_quality": quality,
                     "peak_signal": peak,
@@ -255,6 +257,17 @@ class KismetCoordinator(DataUpdateCoordinator[KismetData]):
                     "last_seen": now_ts,
                     "is_active": True,
                 }
+                if is_new:
+                    self.hass.bus.async_fire(
+                        "kismet_new_device",
+                        {
+                            "mac": mac,
+                            "name": name,
+                            "manufacturer": manuf,
+                            "signal": sig,
+                            "signal_quality": quality,
+                        },
+                    )
             for mac in self._wifi_presence_cache:
                 if mac not in current_active_macs:
                     self._wifi_presence_cache[mac]["is_active"] = False
