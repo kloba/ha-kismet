@@ -295,6 +295,4 @@ class KismetWifiSignal(
             # Positive 0-100 scale for auto-entities sorting (higher=stronger)
             attrs["signal_strength"] = max(0, min(100, 100 + dbm))
             attrs["peak_quality"] = info.get("peak_quality", "Weak")
-            attrs["connected_ap"] = info.get("connected_ap", "")
-            attrs["connected_bssid"] = info.get("connected_bssid", "")
         return attrs

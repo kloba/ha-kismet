@@ -58,7 +58,6 @@ DEVICE_FIELDS: Final = [
     "kismet.device.base.channel",
     "kismet.device.base.manuf",
     "kismet.device.base.packets.total",
-    "dot11.device.last_bssid",
 ]
 
 # System status fields
